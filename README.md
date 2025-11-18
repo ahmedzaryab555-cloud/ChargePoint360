@@ -51,6 +51,7 @@ License
 
 This project is licensed under CC BY 4.0
  — you are free to share and adapt, with proper attribution.
+ 
 Ahmed Zaryab Haider — Website
 
 Author Name
