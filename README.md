@@ -54,7 +54,7 @@ This project is licensed under CC BY 4.0
  
 Ahmed Zaryab Haider — Website
 
-Author Name
-Ahmed Zaryab Haider
+Author Name:
+"Ahmed Zaryab Haider"
 
-Student ID: 35947678
+Student ID: "35947678"
