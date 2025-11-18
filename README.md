@@ -51,7 +51,9 @@ License
 
 This project is licensed under CC BY 4.0
  — you are free to share and adapt, with proper attribution.
-
-Author
-
 Ahmed Zaryab Haider — Website
+
+Author Name
+Ahmed Zaryab Haider
+
+Student ID: 35947678
