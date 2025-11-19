@@ -27,6 +27,7 @@ Leaflet MarkerCluster — for grouping nearby markers
 Microsoft Azure — hosting the project
 
 OpenStreetMap / CartoDB — map tiles
+
 Usage
 
 Explore the Map: Zoom in/out and click on markers to view station details.
@@ -35,7 +36,11 @@ Filters: Toggle charger types (Public, Fast, Wall-Box) using the filter buttons.
 
 Search: Type a station name or area in the search bar and press Enter or click Search.
 
-Locate Me: Click the Locate button to find your current position.
+Locate Me: Click the Locate button to find your current position on the map.
+
+Demo
+
+You can see the live demo of the project here:https://chargepoint360.infinityfreeapp.com/?i=1
 
 Contribution
 
@@ -49,8 +54,7 @@ Bug fixes and performance enhancements
 
 License
 
-This project is licensed under CC BY 4.0
- — you are free to share and adapt, with proper attribution.
+This project is licensed under Creative Commons Attribution 4.0 International (CC BY 4.0)
  
 Ahmed Zaryab Haider — Website
 
@@ -58,3 +62,5 @@ Author Name:
 "Ahmed Zaryab Haider"
 
 Student ID: "35947678"
+
+Website:https://chargepoint360.infinityfreeapp.com/?i=1
