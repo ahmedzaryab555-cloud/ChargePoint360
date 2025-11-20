@@ -1,8 +1,8 @@
 # ChargePoint360
 A cloud-based system for finding EV charging stations is called ChargePoint360. The project uses an interactive online map hosted on the Microsoft Azure Cloud to assist EV drivers in locating charging stations in their area. For EV users in UAE, this system guarantees dependability, scalability, and accessibility.  It's for my ICT171  assignment.
 
-Features
- Interactive Map
+   Features
+    (Interactive Map)
 
 Fully interactive Dubai map built with Leaflet.js
 
@@ -10,7 +10,7 @@ Zoom, pan, and explore all EV charging station locations
 
 Marker clustering for cleaner map navigation
 
- Charger Directory
+   (Charger Directory)
 
 Complete searchable list of all stations
 
@@ -18,13 +18,13 @@ Filter by area or charger type
 
 Quick actions: zoom to location, copy coordinates, open directions in Google Maps
 
- Powerful Search
+   (Powerful Search)
 
 Real-time search across station name, notes, and area
 
 Works on both Home → Quick List and Directory page
 
- Detailed Stations
+   (Detailed Stations)
 
 Each station includes:
 
@@ -40,13 +40,13 @@ Notes
 
 Instant Google Maps navigation
 
- Export to JSON
+   (Export to JSON)
 
 Download the entire dataset of 55+ Dubai EV chargers
 
 Useful for offline analysis or integration in other apps
 
- Responsive Single-Page UI
+   (Responsive Single-Page UI)
 
 Works seamlessly on desktop and mobile
 
@@ -54,7 +54,7 @@ Modern dark-theme interface
 
 Smooth client-side page switching (Home / Directory / About / Contact)
 
- Open Data Sources
+   (Open Data Sources)
 
 Station data was manually compiled using openly available public sources including:
 
@@ -68,7 +68,7 @@ Google Maps public charger listings
 
 (No APIs are used — fully static and open-data based)
 
-Technologies Used
+   (Technologies Used)
 
 HTML5 / CSS3 / Vanilla JavaScript (single-file SPA)
 
@@ -82,33 +82,33 @@ Microsoft Azure VM Hosting
 
 Fully client-side — no backend required
 
-Live Demo
+   (Live Demo)
  Main Website
 
  https://www.chargepoint360.it.com/
 
-Usage
+   (Usage)
  Explore the Map
 
 Zoom or click markers to view details and directions.
 
- Search
+   (Search)
 
 Use the search box to instantly filter stations.
 
- Filters
+   (Filters)
 
 Select by Area and Charger Type.
 
- Navigation
+   (Navigation)
 
 Click Directions on any station card to open Google Maps.
 
- Export
+   (Export)
 
 Click Export JSON to download the complete Dubai station list.
 
-Contribution
+   (Contribution)
 
 Contributions are welcome!
 
@@ -124,7 +124,7 @@ Bug fixes
 
 To contribute, open an issue or submit a pull request.
 
-License
+   (License)
 
 This project is licensed under:
 
@@ -132,7 +132,7 @@ Creative Commons Attribution 4.0 International (CC BY 4.0)
 
 You are free to share and adapt the project with proper credit.
 
-Author
+   (Author)
 
 Name: Ahmed Zaryab Haider
 
