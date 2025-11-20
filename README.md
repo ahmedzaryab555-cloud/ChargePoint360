@@ -46,7 +46,7 @@ Download the entire dataset of 55+ Dubai EV chargers
 
 Useful for offline analysis or integration in other apps
 
-📱 Responsive Single-Page UI
+ Responsive Single-Page UI
 
 Works seamlessly on desktop and mobile
 
@@ -135,5 +135,7 @@ You are free to share and adapt the project with proper credit.
 Author
 
 Name: Ahmed Zaryab Haider
+
 Student ID: 35947678
+
 Website: https://www.chargepoint360.it.com/
