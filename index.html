@@ -1,186 +1,450 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>ChargePoint360 — Dubai EV Map</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>ChargePoint360 — Dubai EV Map (Single-file)</title>
 
-<!-- Leaflet CSS -->
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-<!-- MarkerCluster CSS -->
-<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
-<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css"/>
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css"/>
 
 <style>
-/* ---------- GLOBAL UI STYLE ---------- */
-body {
-  margin: 0;
-  background: #0d0d0d;
-  color: #eaeaea;
-  font-family: "Segoe UI", Arial, sans-serif;
-  overflow-x: hidden;
+:root{
+  --bg:#0d0d0d; --panel:#151515; --muted:#bdbdbd; --accent:#00e676; --border:#222;
 }
-
-/* ---------- HEADER ---------- */
-header {
-  background: #000;
-  color: #00e676;
-  padding: 18px;
-  text-align: center;
-  font-size: 1.6rem;
-  font-weight: 600;
-  letter-spacing: 0.5px;
-  border-bottom: 1px solid #1d1d1d;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.5);
-}
-
-/* ---------- MAP AREA ---------- */
-#map {
-  width: 100%;
-  height: 62vh;
-  border-bottom: 1px solid #222;
-}
-
-/* ---------- LIST SECTION ---------- */
-.section-title {
-  font-size: 1.4rem;
-  margin-top: 25px;
-  margin-bottom: 15px;
-  padding-left: 12px;
-  font-weight: bold;
-  color: #00e676;
-}
-
-.station-list {
-  padding: 12px;
-  margin-bottom: 40px;
-}
-
-.station-item {
-  background: #151515;
-  padding: 15px;
-  margin-bottom: 12px;
-  border-radius: 12px;
-  border: 1px solid #222;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.35);
-  transition: transform 0.18s ease, background 0.2s ease;
-}
-
-.station-item:hover {
-  transform: translateY(-3px);
-  background: #1c1c1c;
-}
-
-/* ---------- FOOTER ---------- */
-footer {
-  margin-top: 20px;
-  padding: 20px;
-  text-align: center;
-  color: #bdbdbd;
-  font-size: 0.9rem;
-  border-top: 1px solid #222;
-}
-
-footer img {
-  vertical-align: middle;
-}
-
-/* Smooth link color */
-a {
-  color: #00e676;
-  text-decoration: none;
-}
-a:hover {
-  text-decoration: underline;
-}
-
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:#eaeaea;font-family:"Segoe UI",Arial,sans-serif;line-height:1.45}
+header{background:#000;color:var(--accent);padding:14px 18px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border)}
+.brand{font-weight:700}
+.nav{display:flex;gap:8px}
+.nav button{background:transparent;border:1px solid transparent;color:var(--accent);padding:8px 10px;border-radius:8px;cursor:pointer}
+.nav button[aria-current="true"]{background:linear-gradient(90deg, rgba(0,230,118,0.08), rgba(0,230,118,0.02));border:1px solid rgba(0,230,118,0.12)}
+.container{max-width:1200px;margin:18px auto;padding:0 14px}
+.section{display:none}
+.section.active{display:block;animation:fadeIn .28s ease}
+#map{width:100%;height:62vh;border-radius:12px;border:1px solid var(--border);box-shadow:0 6px 18px rgba(0,0,0,0.6);margin-bottom:12px}
+.panel{background:var(--panel);padding:12px;border-radius:12px;border:1px solid var(--border)}
+.section-title{color:var(--accent);font-weight:700;margin-bottom:8px}
+.two-col{display:grid;grid-template-columns:1fr 320px;gap:16px}
+.station-list{display:flex;flex-direction:column;gap:10px;max-height:48vh;overflow:auto}
+.station-item{background:linear-gradient(180deg,#151515,#131313);padding:10px;border-radius:10px;border:1px solid #1a1a1a}
+.controls{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:10px}
+.controls input,.controls select{background:#0f0f0f;border:1px solid #222;padding:8px;border-radius:8px;color:#eaeaea}
+button.primary{background:linear-gradient(90deg,var(--accent),#00c65a);border:none;padding:9px 12px;border-radius:8px;color:#001;font-weight:700;cursor:pointer}
+footer{margin-top:22px;padding:18px;text-align:center;color:var(--muted);border-top:1px solid var(--border)}
+@media(max-width:900px){.two-col{grid-template-columns:1fr}#map{height:50vh}}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
 </style>
 </head>
-
 <body>
 
-<header>ChargePoint360 — Dubai EV Map</header>
+<header>
+  <div class="brand">ChargePoint360 </div>
+  <nav class="nav" aria-label="Main navigation">
+    <button data-target="home" aria-current="true">Home</button>
+    <button data-target="directory">Directory</button>
+    <button data-target="about">About</button>
+    <button data-target="contact">Contact</button>
+  </nav>
+</header>
 
-<!-- Map -->
-<div id="map"></div>
+<main class="container">
+  <!-- HOME -->
+  <section id="home" class="section active" aria-labelledby="homeTitle">
+    <h2 id="homeTitle" class="section-title">ChargePoint360 — Dubai (Home)</h2>
+    <div class="panel" role="region" aria-label="Map area">
+      <div id="map" tabindex="0" aria-label="Map of Dubai EV chargers"></div>
 
-<!-- Station List -->
-<div class="section-title">EV Charging Locations in Dubai</div>
-<div class="station-list" id="stationList"></div>
+      <div style="display:flex;gap:8px;margin-top:10px;align-items:center;flex-wrap:wrap">
+        <input id="latlon" placeholder="jump to lat,lon e.g. 25.2048,55.2708" style="background:#0f0f0f;border:1px solid #222;padding:8px;border-radius:8px;color:#eaeaea">
+        <button id="jumpBtn" class="primary">Go</button>
+        <button id="openDirectory" class="primary">Open Directory</button>
+        <div style="margin-left:auto;color:var(--muted);font-size:0.95rem">Markers: <span id="markerCount">0</span></div>
+      </div>
+    </div>
 
-<!-- FOOTER WITH YOUR LICENSE -->
+    <div style="height:12px"></div>
+    <div class="two-col">
+      <div>
+        <div class="panel" role="region">
+          <div class="section-title">Quick list</div>
+          <div class="controls">
+            <input id="search" placeholder="Search stations..." aria-label="Search">
+            <select id="filterArea"><option value="">All areas</option></select>
+            <select id="sort"><option value="name">Sort: name</option><option value="type">Sort: type</option></select>
+            <button id="exportJSON" class="primary">Export JSON</button>
+          </div>
+          <div class="station-list" id="stationList" aria-live="polite"></div>
+        </div>
+      </div>
+
+      <aside>
+        <div class="panel" role="region">
+          <div class="section-title">Project Summary</div>
+          <div style="color:var(--muted);font-size:0.95rem">
+            <strong>Project:</strong> ChargePoint360<br>
+            <strong>Hosted on:</strong> Microsoft Azure<br>
+            <strong>Author:</strong> Ahmed Zaryab Haider<br>
+            <strong>Student ID:</strong> 35947678
+          </div>
+
+          <hr style="border:1px dashed #1a1a1a;margin:12px 0">
+          <div class="section-title">Quick Actions</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button id="showAll" class="primary">Fit all markers</button>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <!-- DIRECTORY -->
+  <section id="directory" class="section" aria-labelledby="dirTitle">
+    <h2 id="dirTitle" class="section-title">Directory — All Chargers (Dubai)</h2>
+    <div class="panel">
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <input id="dirSearch" placeholder="Search name / area / notes..." aria-label="Directory search">
+        <select id="dirFilter"><option value="">All types</option><option value="fast">fast</option><option value="slow">slow</option></select>
+        <button id="dirBack" class="primary">Back to Map</button>
+      </div>
+
+      <div id="dirList" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;margin-top:12px"></div>
+    </div>
+  </section>
+
+  <!-- ABOUT -->
+  <section id="about" class="section" aria-labelledby="aboutTitle">
+    <h2 id="aboutTitle" class="section-title">About</h2>
+    <div class="panel">
+      <h3>About ChargePoint360</h3>
+      <p style="color:var(--muted)">ChargePoint360 is a web-based interactive map that helps EV drivers locate charging stations across Dubai. The site provides a searchable directory, station details, directions, and exportable station data.</p>
+
+      <h4 style="margin-top:12px">Features</h4>
+      <ul style="color:var(--muted)">
+        <li>Interactive map of Dubai with clustered markers and popups</li>
+        <li>Searchable directory with area/type filters and quick details</li>
+        <li>Export station list to JSON for offline use or further analysis</li>
+        <li>Open a station location in Google Maps for navigation</li>
+        <li>Contact form for feedback (simulated client-side)</li>
+        <li>Accessibility-friendly controls and keyboard navigation</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- CONTACT -->
+  <section id="contact" class="section" aria-labelledby="contactTitle">
+    <h2 id="contactTitle" class="section-title">Contact</h2>
+    <div class="panel">
+      <form id="contactForm" novalidate>
+        <div style="display:flex;gap:8px;margin-bottom:8px">
+          <input id="name" placeholder="Your name" required style="flex:1;padding:8px;border-radius:8px;background:#0d0d0d;border:1px solid #222;color:#eee">
+          <input id="email" type="email" placeholder="Your email" required style="flex:1;padding:8px;border-radius:8px;background:#0d0d0d;border:1px solid #222;color:#eee">
+        </div>
+        <div style="margin-bottom:8px">
+          <input id="subject" placeholder="Subject" style="width:100%;padding:8px;border-radius:8px;background:#0d0d0d;border:1px solid #222;color:#eee">
+        </div>
+        <div style="margin-bottom:8px">
+          <textarea id="message" rows="6" placeholder="Message" required style="width:100%;padding:8px;border-radius:8px;background:#0d0d0d;border:1px solid #222;color:#eee"></textarea>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <button type="submit" class="primary">Send Message</button>
+          <div id="contactStatus" style="color:var(--muted)"></div>
+        </div>
+      </form>
+    </div>
+  </section>
+</main>
+
 <footer>
-  <a rel="license" href="https://creativecommons.org/licenses/by/4.0/">
-    <img alt="Creative Commons License" 
-         src="https://licensebuttons.net/l/by/4.0/88x31.png" />
-  </a>
-  <br>
-  <a href="http://74.225.206.44/">Chargepoint360</a> © 2025 by 
-  <a href="http://74.225.206.44/">Ahmed Zaryab Haider</a> 
-  is licensed under 
+  <a href="http://74.225.206.44/">Chargepoint360</a> © 2025 by
+  <a href="http://74.225.206.44/">Ahmed Zaryab Haider</a> is licensed under
   <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>
-  <img src="https://mirrors.creativecommons.org/presskit/icons/cc.svg" 
-       style="max-width:1em;max-height:1em;margin-left:.25em;">
-  <img src="https://mirrors.creativecommons.org/presskit/icons/by.svg" 
-       style="max-width:1em;max-height:1em;margin-left:.25em;">
+  <img src="https://mirrors.creativecommons.org/presskit/icons/cc.svg" style="max-width:1em;max-height:1em;margin-left:.2em;">
+  <img src="https://mirrors.creativecommons.org/presskit/icons/by.svg" style="max-width:1em;max-height:1em;margin-left:.2em;">
 </footer>
 
-<!-- Leaflet JS -->
+<!-- Leaflet + MarkerCluster -->
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 
 <script>
-// Initialize Map
-const map = L.map('map').setView([25.2048, 55.2708], 11);
+/* ======================
+  ChargePoint360 — single-file SPA
+  - Home / Directory / About / Contact
+  - ~55 charger markers across Dubai
+  - search, filter, clustering, copy coords, jump-to
+  - Export JSON
+  ====================== */
 
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-  maxZoom: 20
-}).addTo(map);
-
-// Custom EV Icon
-const customIcon = L.icon({
-  iconUrl: "https://cdn-icons-png.flaticon.com/512/3103/3103446.png",
-  iconSize: [40, 40],
-  popupAnchor: [0, -10]
+/* --------------------------
+   Client-side navigation
+   -------------------------- */
+const navButtons = document.querySelectorAll('.nav button');
+navButtons.forEach(btn => {
+  btn.addEventListener('click', () => {
+    showSection(btn.dataset.target);
+    navButtons.forEach(b=>b.setAttribute('aria-current','false'));
+    btn.setAttribute('aria-current','true');
+  });
 });
+function showSection(id){
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  const sec = document.getElementById(id);
+  if(sec) sec.classList.add('active');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
 
-// Charger List
-const chargers = [
-  { name: "Dubai Mall Supercharger", lat: 25.1972, lon: 55.2797 },
-  { name: "Mall of the Emirates", lat: 25.1180, lon: 55.2007 },
-  { name: "Expo City Dubai", lat: 24.9586, lon: 55.1474 },
-  { name: "JBR — The Walk", lat: 25.0803, lon: 55.1403 },
-  { name: "Dubai Silicon Oasis", lat: 25.1240, lon: 55.3750 },
-  { name: "Mirdif City Centre", lat: 25.2210, lon: 55.4100 },
-  { name: "Dubai Internet City", lat: 25.095, lon: 55.159 },
-  { name: "Ibn Battuta Mall", lat: 25.046, lon: 55.118 },
-  { name: "City Walk Dubai", lat: 25.204, lon: 55.268 }
+/* quick connectors */
+document.getElementById('openDirectory').addEventListener('click', ()=> {
+  document.querySelector('[data-target="directory"]').click();
+});
+document.getElementById('dirBack').addEventListener('click', ()=> document.querySelector('[data-target="home"]').click());
+
+/* --------------------------
+   Station dataset (approx. 50+)
+   -------------------------- */
+const stations = [
+  {id:1, name:"Dubai Mall Supercharger (Za'abeel Parking)", lat:25.1980, lon:55.2770, area:"Downtown", type:"tesla", cost:"paid", notes:"Tesla Supercharger (many stalls)"},
+  {id:2, name:"The Dubai Mall — Fashion Parking (Destination)", lat:25.1986, lon:55.2775, area:"Downtown", type:"destination", cost:"paid", notes:"Destination chargers"},
+  {id:3, name:"Dubai Opera / Financial Centre (DEWA)", lat:25.2048, lon:55.2728, area:"Downtown", type:"dewa", cost:"paid", notes:"DEWA Green Charger"},
+  {id:4, name:"Mall of the Emirates (Charger)", lat:25.1180, lon:55.2008, area:"Al Barsha", type:"dewa", cost:"paid", notes:"Destination & public chargers"},
+  {id:5, name:"Ibn Battuta Mall (Charger)", lat:25.0460, lon:55.1182, area:"Jebel Ali", type:"dewa", cost:"paid", notes:"Mall charging bays"},
+  {id:6, name:"Mirdif City Centre (Charger)", lat:25.2220, lon:55.4102, area:"Mirdif", type:"dewa", cost:"paid", notes:"Mall chargers"},
+  {id:7, name:"City Walk (Chargers)", lat:25.2038, lon:55.2690, area:"City Walk", type:"tesla-compatible", cost:"paid", notes:"Destination chargers"},
+  {id:8, name:"JBR — The Walk (Charger)", lat:25.0798, lon:55.1400, area:"JBR", type:"dewa", cost:"paid", notes:"Beach front chargers"},
+  {id:9, name:"Dubai Marina Mall (Charging)", lat:25.0780, lon:55.1376, area:"Marina", type:"dewa", cost:"paid", notes:"Shopping area"},
+  {id:10, name:"Expo City Dubai (Charger Hub)", lat:24.9586, lon:55.1474, area:"Expo", type:"dewa", cost:"free", notes:"Expo charging hub"},
+  {id:11, name:"Dubai Silicon Oasis (Charging)", lat:25.1206, lon:55.3729, area:"DSO", type:"dewa", cost:"paid", notes:"Business park chargers"},
+  {id:12, name:"Dubai Internet City (Charging)", lat:25.0948, lon:55.1559, area:"DIC", type:"dewa", cost:"free/paid", notes:"Office park"},
+  {id:13, name:"Dubai International Airport — Terminal 3 (DEWA)", lat:25.2528, lon:55.3644, area:"Airport", type:"dewa", cost:"paid", notes:"Airport parking chargers"},
+  {id:14, name:"Crowne Plaza Dubai Deira (Hotel Charging)", lat:25.2639, lon:55.3331, area:"Deira", type:"destination", cost:"paid", notes:"Hotel chargers"},
+  {id:15, name:"ENOC Umm Suqeim (ENOC)", lat:25.2044, lon:55.2451, area:"Umm Suqeim", type:"enoc", cost:"paid", notes:"ENOC EV charger"},
+  {id:16, name:"ADNOC Distribution — Sheikh Zayed Rd (ADNOC)", lat:25.2040, lon:55.2560, area:"Sheikh Zayed Rd", type:"adnoc", cost:"paid", notes:"Fast chargers at service station"},
+  {id:17, name:"ENOC — Jumeirah St (ENOC)", lat:25.2342, lon:55.2731, area:"Jumeirah", type:"enoc", cost:"paid", notes:"ENOC public charger"},
+  {id:18, name:"Dubai Festival City Mall (Charging)", lat:25.2473, lon:55.3410, area:"Festival City", type:"destination", cost:"paid", notes:"Mall chargers"},
+  {id:19, name:"Deira City Centre (Charger)", lat:25.2694, lon:55.3106, area:"Deira", type:"dewa", cost:"paid", notes:"Mall chargers"},
+  {id:20, name:"Al Quoz — Community Centre (Charger)", lat:25.2119, lon:55.2448, area:"Al Quoz", type:"dewa", cost:"paid", notes:"Community charging"},
+  {id:21, name:"Al Barsha — Residential (Charger)", lat:25.1197, lon:55.2003, area:"Al Barsha", type:"dewa", cost:"paid", notes:"Residential bay"},
+  {id:22, name:"Burj Al Arab (Guest chargers)", lat:25.1413, lon:55.1853, area:"Jumeirah", type:"destination", cost:"paid", notes:"Hotel guest chargers"},
+  {id:23, name:"Atlantis The Palm (Charging)", lat:25.1304, lon:55.1171, area:"Palm Jumeirah", type:"destination", cost:"paid", notes:"Resort chargers"},
+  {id:24, name:"Al Khail Road — Service Station (Charger)", lat:25.1039, lon:55.2111, area:"Al Khail", type:"fast", cost:"paid", notes:"Roadside quick charge"},
+  {id:25, name:"Sheikh Mohammed Bin Zayed Rd — Service Area (Charger)", lat:25.0768, lon:55.2131, area:"SMBZ Rd", type:"fast", cost:"paid", notes:"Highway fast charger"},
+  {id:26, name:"Mall of the Emirates — Tesla stalls", lat:25.1180, lon:55.2008, area:"Al Barsha", type:"tesla", cost:"paid", notes:"Tesla destination chargers (underground)"},
+  {id:27, name:"Dubai Hills — Tesla & destination", lat:25.0840, lon:55.2090, area:"Dubai Hills", type:"tesla", cost:"paid", notes:"Shopping / park area"},
+  {id:28, name:"City Walk — Tesla-compatible", lat:25.2031, lon:55.2694, area:"City Walk", type:"tesla-compatible", cost:"paid", notes:"Retail district"},
+  {id:29, name:"Knowledge Village — Charging", lat:25.2100, lon:55.2620, area:"Knowledge Village", type:"dewa", cost:"free/paid", notes:"Campus chargers"},
+  {id:30, name:"Dubai Police HQ — Public Charging", lat:25.1849, lon:55.2716, area:"Al Wasl", type:"dewa", cost:"free", notes:"Public DEWA charger"},
+  {id:31, name:"Zabeel Park — Charging", lat:25.2150, lon:55.2720, area:"Zabeel", type:"dewa", cost:"paid", notes:"Park parking chargers"},
+  {id:32, name:"La Mer / Jumeirah Beach — Chargers", lat:25.2390, lon:55.2550, area:"Jumeirah", type:"dewa", cost:"paid", notes:"Beach area chargers"},
+  {id:33, name:"Al Rigga / Deira — Public Charger", lat:25.2601, lon:55.3239, area:"Deira", type:"dewa", cost:"paid", notes:"Community charger"},
+  {id:34, name:"Al Garhoud — Public Charger", lat:25.2593, lon:55.3469, area:"Garhoud", type:"dewa", cost:"paid", notes:"Near airport"},
+  {id:35, name:"Jebel Ali — Industrial Park Chargers", lat:25.0279, lon:55.1238, area:"Jebel Ali", type:"dewa", cost:"paid", notes:"Industrial area charging"},
+  {id:36, name:"Taxi Ultra-Fast Hub 1 (Planned)", lat:25.1800, lon:55.2500, area:"Central Dubai", type:"ultrafast", cost:"paid", notes:"Planned hub"},
+  {id:37, name:"Taxi Ultra-Fast Hub 2 (Planned)", lat:25.0600, lon:55.1800, area:"South Dubai", type:"ultrafast", cost:"paid", notes:"Planned hub"},
+  {id:38, name:"ADNOC — Al Quoz Service Station (Charger)", lat:25.1975, lon:55.2465, area:"Al Quoz", type:"adnoc", cost:"paid", notes:"Fast charge"},
+  {id:39, name:"ENOC — Sheikh Zayed Road (Charger)", lat:25.1820, lon:55.2705, area:"Sheikh Zayed Rd", type:"enoc", cost:"paid", notes:"ENOC station"},
+  {id:40, name:"Dubai Festival City — Hotels Charging", lat:25.2464, lon:55.3349, area:"Festival City", type:"destination", cost:"paid", notes:"Hotels and mall chargers"},
+  {id:41, name:"Dubai Creek Harbour — Charging", lat:25.2259, lon:55.3472, area:"Creek Harbour", type:"dewa", cost:"paid", notes:"New development chargers"},
+  {id:42, name:"Rashidiya / Near Airport — Charging", lat:25.2740, lon:55.3340, area:"Rashidiya", type:"dewa", cost:"paid", notes:"Near transport hubs"},
+  {id:43, name:"Bluewaters Island — Chargers", lat:25.0772, lon:55.1266, area:"Bluewaters", type:"destination", cost:"paid", notes:"Attractions chargers"},
+  {id:44, name:"Nakheel Mall — Chargers", lat:25.1530, lon:55.1215, area:"Palm Jumeirah", type:"destination", cost:"paid", notes:"Retail chargers"},
+  {id:45, name:"Dubai Municipality — Public Charger", lat:25.2045, lon:55.2921, area:"Al Twar", type:"dewa", cost:"paid", notes:"Public services chargers"},
+  {id:46, name:"Dubai World Trade Centre — Charger", lat:25.2075, lon:55.2766, area:"DWTC", type:"dewa", cost:"paid", notes:"Event centre chargers"},
+  {id:47, name:"Business Bay — Multi-level parking chargers", lat:25.1833, lon:55.2845, area:"Business Bay", type:"dewa", cost:"paid", notes:"Business district"},
+  {id:48, name:"Al Barsha South — Community chargers", lat:25.1054, lon:55.2074, area:"Al Barsha South", type:"dewa", cost:"paid", notes:"Residential hub"},
+  {id:49, name:"Dubai Hills Mall — Chargers", lat:25.0844, lon:55.2055, area:"Dubai Hills", type:"destination", cost:"paid", notes:"Mall chargers"},
+  {id:50, name:"Madinat Jumeirah — Chargers", lat:25.1985, lon:55.2436, area:"Madinat Jumeirah", type:"destination", cost:"paid", notes:"Resort chargers"},
+  {id:51, name:"The Pointe — Palm chargers", lat:25.1247, lon:55.1358, area:"Palm Jumeirah", type:"destination", cost:"paid", notes:"Tourist chargers"},
+  {id:52, name:"Dubai Outlet Mall — Chargers", lat:25.2219, lon:55.3008, area:"Dubailand", type:"destination", cost:"paid", notes:"Retail chargers"},
+  {id:53, name:"Global Village — Chargers", lat:25.0625, lon:55.2334, area:"Dubailand", type:"destination", cost:"paid", notes:"Seasonal events chargers"},
+  {id:54, name:"Al Badia Golf Club — Chargers", lat:25.2632, lon:55.3800, area:"Al Badia", type:"destination", cost:"paid", notes:"Golf / leisure chargers"},
+  {id:55, name:"Dubai Silicon Oasis (additional bay)", lat:25.1215, lon:55.3732, area:"DSO", type:"dewa", cost:"paid", notes:"Business park chargers"}
 ];
 
-const clusterGroup = L.markerClusterGroup();
+/* --------------------------
+   Map setup
+   -------------------------- */
+const center = [25.2048,55.2708];
+const map = L.map('map',{preferCanvas:true}).setView(center, 11);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:20}).addTo(map);
 
-// Add markers
-chargers.forEach(c => {
-  const marker = L.marker([c.lat, c.lon], { icon: customIcon })
-    .bindPopup(`<b>${c.name}</b>`);
-  clusterGroup.addLayer(marker);
+const evIcon = L.icon({iconUrl:"https://cdn-icons-png.flaticon.com/512/3103/3103446.png", iconSize:[36,36], iconAnchor:[18,36], popupAnchor:[0,-28]});
+let cluster = L.markerClusterGroup();
+let markerObjs = [];
+
+function loadMarkers(list){
+  cluster.clearLayers();
+  markerObjs = [];
+  list.forEach(s=>{
+    const m = L.marker([s.lat, s.lon], {icon:evIcon}).bindPopup(`<b>${escapeHtml(s.name)}</b><br>${escapeHtml(s.area)} — ${escapeHtml(s.type)} — ${escapeHtml(s.cost)}<br><small>${escapeHtml(s.notes)}</small>`);
+    m._stationId = s.id;
+    cluster.addLayer(m);
+    markerObjs.push({marker:m, meta:s});
+  });
+  map.addLayer(cluster);
+  document.getElementById('markerCount').textContent = markerObjs.length;
+}
+loadMarkers(stations);
+
+/* --------------------------
+   Station list UI
+   -------------------------- */
+const stationListEl = document.getElementById('stationList');
+const searchEl = document.getElementById('search');
+const filterAreaEl = document.getElementById('filterArea');
+const sortEl = document.getElementById('sort');
+const dirList = document.getElementById('dirList');
+
+function buildAreaOptions(){
+  const areas = Array.from(new Set(stations.map(s=>s.area))).sort();
+  areas.forEach(a=>{
+    const opt = document.createElement('option'); opt.value=a; opt.textContent=a; filterAreaEl.appendChild(opt);
+    const opt2 = document.createElement('option'); opt2.value=a; opt2.textContent=a; document.getElementById('dirFilter').appendChild(opt2);
+  });
+}
+buildAreaOptions();
+
+function renderStationList(list){
+  stationListEl.innerHTML = '';
+  if(list.length===0){
+    const empty = document.createElement('div'); empty.style.color='var(--muted)'; empty.textContent = 'No stations match your search.';
+    stationListEl.appendChild(empty);
+    return;
+  }
+  list.forEach(s=>{
+    const d = document.createElement('div'); d.className='station-item';
+    d.innerHTML = `<b>${escapeHtml(s.name)}</b><div style="color:var(--muted);font-size:.95rem">${escapeHtml(s.area)} — ${escapeHtml(s.type)}</div>
+      <div style="margin-top:8px;display:flex;gap:8px"><button data-id="${s.id}" class="zoom">Zoom</button><button data-id="${s.id}" class="details">Details</button><button data-id="${s.id}" class="copy">Copy coords</button></div>`;
+    stationListEl.appendChild(d);
+  });
+}
+renderStationList(stations);
+
+function renderDirectory(list){
+  dirList.innerHTML = '';
+  if(list.length===0){
+    const empty = document.createElement('div'); empty.className='panel'; empty.style.color='var(--muted)'; empty.textContent = 'No stations match your search.';
+    dirList.appendChild(empty);
+    return;
+  }
+  list.forEach(s=>{
+    const card = document.createElement('div'); card.className='panel';
+    card.innerHTML = `<div style="font-weight:700">${escapeHtml(s.name)}</div>
+      <div style="color:var(--muted);font-size:.95rem">${escapeHtml(s.area)} — ${escapeHtml(s.type)} — ${escapeHtml(s.cost)}</div>
+      <div style="margin-top:8px;display:flex;gap:8px"><button class="primary" data-id="${s.id}" data-action="zoom">Open on map</button><button data-id="${s.id}" data-action="route">Directions</button></div>`;
+    dirList.appendChild(card);
+  });
+}
+renderDirectory(stations);
+
+/* event listeners for list actions */
+stationListEl.addEventListener('click', (e)=>{
+  const btn = e.target.closest('button'); if(!btn) return;
+  const id = Number(btn.dataset.id); const s = stations.find(x=>x.id===id);
+  if(!s) return;
+  if(btn.classList.contains('zoom')){ map.setView([s.lat,s.lon],15); const mk = markerObjs.find(m=>m.meta.id===id); if(mk) mk.marker.openPopup(); }
+  if(btn.classList.contains('details')){ alert(`${s.name}\nArea: ${s.area}\nType: ${s.type}\nNotes: ${s.notes}\nLat: ${s.lat} Lng: ${s.lon}`); }
+  if(btn.classList.contains('copy')){ navigator.clipboard?.writeText(`${s.lat},${s.lon}`).then(()=> showToast('Coordinates copied')); }
 });
 
-map.addLayer(clusterGroup);
-
-// Populate List
-const container = document.getElementById("stationList");
-
-chargers.forEach(c => {
-  const div = document.createElement("div");
-  div.className = "station-item";
-  div.innerHTML = `<b>${c.name}</b><br>Lat: ${c.lat} — Lng: ${c.lon}`;
-  container.appendChild(div);
+/* directory buttons */
+dirList.addEventListener('click', (e)=>{
+  const btn = e.target.closest('button'); if(!btn) return;
+  const id = Number(btn.dataset.id); const s = stations.find(x=>x.id===id);
+  if(!s) return;
+  if(btn.dataset.action==='zoom'){ document.querySelector('[data-target="home"]').click(); setTimeout(()=>{ map.setView([s.lat,s.lon],15); const mk = markerObjs.find(m=>m.meta.id===id); if(mk) mk.marker.openPopup(); }, 300); }
+  if(btn.dataset.action==='route'){ window.open(`https://www.google.com/maps/dir/?api=1&destination=${s.lat},${s.lon}`,'_blank'); }
 });
+
+/* search / filter / sort (home quick list) */
+function applyFilters(){
+  let out = stations.slice();
+  const q = searchEl.value.trim().toLowerCase();
+  if(q) out = out.filter(s=> (s.name+s.area+s.notes).toLowerCase().includes(q));
+  const area = filterAreaEl.value;
+  if(area) out = out.filter(s=>s.area===area);
+  const sort = sortEl.value;
+  if(sort==='name') out.sort((a,b)=>a.name.localeCompare(b.name));
+  if(sort==='type') out.sort((a,b)=>a.type.localeCompare(b.type));
+  renderStationList(out);
+  renderDirectory(out);
+}
+searchEl.addEventListener('input', applyFilters);
+filterAreaEl.addEventListener('change', applyFilters);
+sortEl.addEventListener('change', applyFilters);
+
+/* directory search (separate input) */
+document.getElementById('dirSearch').addEventListener('input', function(){
+  const q = this.value.trim().toLowerCase();
+  const type = document.getElementById('dirFilter').value;
+  let out = stations.slice();
+  if(q) out = out.filter(s => (s.name + ' ' + s.area + ' ' + s.notes).toLowerCase().includes(q));
+  if(type) out = out.filter(s => s.type === type);
+  renderDirectory(out);
+});
+document.getElementById('dirFilter').addEventListener('change', function(){
+  // trigger directory search logic
+  const q = document.getElementById('dirSearch').value.trim().toLowerCase();
+  const type = this.value;
+  let out = stations.slice();
+  if(q) out = out.filter(s => (s.name + ' ' + s.area + ' ' + s.notes).toLowerCase().includes(q));
+  if(type) out = out.filter(s => s.type === type);
+  renderDirectory(out);
+});
+
+/* jump to coords */
+document.getElementById('jumpBtn').addEventListener('click', ()=>{
+  const v = document.getElementById('latlon').value.trim(); if(!v) return;
+  const parts = v.split(',').map(x=>parseFloat(x.trim())); if(parts.length===2 && !isNaN(parts[0]) && !isNaN(parts[1])) map.setView([parts[0],parts[1]],14);
+  else alert('Enter valid: lat,lon');
+});
+
+/* show all markers */
+document.getElementById('showAll').addEventListener('click', ()=>{
+  if(markerObjs.length===0) return;
+  const group = L.featureGroup(markerObjs.map(m=>m.marker)); map.fitBounds(group.getBounds().pad(0.2));
+});
+
+/* export json */
+document.getElementById('exportJSON').addEventListener('click', ()=>{
+  const blob = new Blob([JSON.stringify(stations,null,2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href=url; a.download='dubai_chargers.json'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+});
+
+/* contact form simulation */
+document.getElementById('contactForm').addEventListener('submit', (e)=>{
+  e.preventDefault();
+  const name = document.getElementById('name').value.trim();
+  const email = document.getElementById('email').value.trim();
+  const message = document.getElementById('message').value.trim();
+  if(!name||!email||!message){ document.getElementById('contactStatus').textContent='Please fill required fields.'; return; }
+  document.getElementById('contactStatus').textContent='Sending...';
+  setTimeout(()=>{ document.getElementById('contactStatus').textContent='Message sent (simulated). Thank you!'; e.target.reset(); },800);
+});
+
+/* small utilities */
+function escapeHtml(s){ return String(s).replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+function showToast(msg){ const t=document.createElement('div'); t.textContent=msg; t.style='position:fixed;bottom:20px;right:20px;background:#111;padding:10px 12px;border-radius:8px;border:1px solid #222;color:#eaeaea;z-index:9999'; document.body.appendChild(t); setTimeout(()=>t.style.opacity=0,1600); setTimeout(()=>t.remove(),2200); }
+
+/* basic keyboard accessibility for nav */
+document.querySelectorAll('.nav button').forEach(btn=>{ btn.addEventListener('keydown', e=>{ if(e.key==='Enter' || e.key===' ') btn.click(); }); });
+
+/* initial info */
+document.getElementById('markerCount').textContent = stations.length;
+renderStationList(stations);
+renderDirectory(stations);
+
+/* safety: capture unhandled errors for debugging evidence */
+window.addEventListener('error', (ev)=> console.error('Captured error:', ev.message));
 </script>
-
 </body>
 </html>
+
+
+
 
 
 
